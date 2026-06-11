@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalle de la Noticia - El Faro Digital</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        .img-detalle {
+            max-height: 450px;
+            object-fit: cover;
+            width: 100%;
+        }
+    </style>
+</head>
+<body class="bg-light d-flex flex-column min-vh-100">
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4 shadow-sm">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="index.html"><i class="bi bi-newspaper me-2"></i>El Faro Digital</a>
+            <a href="index.html" class="btn btn-outline-light btn-sm"><i class="bi bi-arrow-left"></i> Volver al Inicio</a>
+        </div>
+    </nav>
+
+    <main class="container flex-grow-1" style="max-width: 850px;">
+        <div id="cargando" class="text-center py-5">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="mt-2">Cargando contenido de la noticia...</p>
+        </div>
+
+        <article id="contenido-noticia" class="d-none">
+            <span id="noticia-categoria" class="badge bg-primary mb-2 fs-6"></span>
+            <h1 id="noticia-titulo" class="fw-bold display-5 mb-3"></h1>
+            
+            <div class="d-flex text-muted justify-content-between mb-4 pb-2 border-bottom small">
+                <span><i class="bi bi-person-fill"></i> Por <strong id="noticia-autor"></strong></span>
+                <span><i class="bi bi-calendar3"></i> <span id="noticia-fecha"></span></span>
+            </div>
+
+            <img id="noticia-imagen" src="" class="img-fluid rounded shadow-sm mb-4 img-detalle" alt="Imagen de la noticia">
+
+            <p id="noticia-texto" class="fs-5 text-dark lh-base mb-5" style="white-space: pre-line;"></p>
+
+            <section class="card border-0 shadow-sm mb-5 bg-white">
+                <div class="card-body d-flex align-items-center justify-content-between py-3">
+                    <div>
+                        <button onclick="votar('like')" class="btn btn-outline-success me-2 fw-bold">
+                            <i class="bi bi-hand-thumbs-up-fill"></i> <span id="contador-likes">0</span>
+                        </button>
+                        <button onclick="votar('dislike')" class="btn btn-outline-danger fw-bold">
+                            <i class="bi bi-hand-thumbs-down-fill"></i> <span id="contador-dislikes">0</span>
+                        </button>
+                    </div>
+                    <div class="text-end small text-muted">
+                        <div id="lista-likes"><strong>Likes de:</strong> Ninguno aún</div>
+                        <div id="lista-dislikes"><strong>Dislikes de:</strong> Ninguno aún</div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="mb-5">
+                <h3 class="fw-bold mb-4"><i class="bi bi-chat-left-text-fill text-primary me-2"></i>Comentarios</h3>
+
+                <div id="seccion-agregar-comentario" class="mb-4">
+                    <form id="form-comentario" class="card border-0 shadow-sm">
+                        <div class="card-body p-3">
+                            <label for="texto-comentario" class="form-label fw-semibold small text-muted">Escribe tu opinión pública:</label>
+                            <textarea class="form-control mb-2" id="texto-comentario" rows="3" required placeholder="¿Qué opinas sobre esta noticia?"></textarea>
+                            <button type="submit" class="btn btn-primary btn-sm fw-bold px-4">Publicar comentario</button>
+                        </div>
+                    </form>
+                </div>
+                <div id="alerta-login-comentario" class="alert alert-warning d-none" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i> Debes <a href="login.html" class="fw-bold">Iniciar Sesión</a> para dejar comentarios o votar.
+                </div>
+
+                <div id="contenedor-comentarios" class="d-flex flex-column gap-3"></div>
+            </section>
+        </article>
+    </main>
+
+    <footer class="bg-dark text-white text-center py-3 mt-auto">
+        <p class="mb-0 small text-muted">&copy; 2026 El Faro Digital. Examen Final Integrador.</p>
+    </footer>
+
+    <script>
+        // Obtener el ID de la noticia desde la URL (?id=3)
+        const urlParams = new URLSearchParams(window.location.search);
+        const noticiaId = urlParams.get('id');
+
+        // Obtener datos del usuario desde el localStorage
+        const token = localStorage.getItem('token');
+        const usuarioSesion = localStorage.getItem('usuario') ? JSON.parse(localStorage.getItem('usuario')) : null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!noticiaId) {
+                alert('No se especificó ninguna noticia.');
+                window.location.href = 'index.html';
+                return;
+            }
+
+            cargarDetalleNoticia();
+            configurarFormularioInteraccion();
+        });
+
+        // 1. CARGAR DETALLE COMPLETO DESDE LA API
+        async function cargarDetalleNoticia() {
+            try {
+                const respuesta = await fetch(`http://localhost:5000/api/noticias/${noticiaId}`);
+                if (!respuesta.ok) throw new Error('No se pudo obtener la noticia.');
+                
+                const data = await respuesta.json();
+                const n = data.noticia;
+
+                // Ocultar spinner y mostrar artículo
+                document.getElementById('cargando').classList.add('d-none');
+                document.getElementById('contenido-noticia').classList.remove('d-none');
+
+                // Llenar datos de la noticia
+                document.getElementById('noticia-titulo').innerText = n.titulo;
+                document.getElementById('noticia-texto').innerText = n.texto;
+                document.getElementById('noticia-autor').innerText = n.autor;
+                document.getElementById('noticia-categoria').innerText = n.categoria_nombre || 'General';
+                document.getElementById('noticia-imagen').src = n.imagen_url || 'https://picsum.photos/800/400';
+                
+                const fecha = new Date(n.fecha).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric'});
+                document.getElementById('noticia-fecha').innerText = fecha;
+
+                // Llenar contadores de reacciones
+                document.getElementById('contador-likes').innerText = n.likes;
+                document.getElementById('contador-dislikes').innerText = n.dislikes;
+
+                // Llenar quiénes dieron like/dislike (Requerimiento cumplido)
+                document.getElementById('lista-likes').innerHTML = `<strong>Likes de:</strong> ${data.detalles_reacciones.usuarios_like.join(', ') || 'Nadie aún'}`;
+                document.getElementById('lista-dislikes').innerHTML = `<strong>Dislikes de:</strong> ${data.detalles_reacciones.usuarios_dislike.join(', ') || 'Nadie aún'}`;
+
+                // Llenar Comentarios (Sentencia repetitiva para renderizar comentarios)
+                const contenedorComentarios = document.getElementById('contenedor-comentarios');
+                contenedorComentarios.innerHTML = '';
+                
+                if (data.comentarios.length === 0) {
+                    contenedorComentarios.innerHTML = '<p class="text-muted small italic">Sé el primero en comentar esta noticia.</p>';
+                } else {
+                    data.comentarios.forEach(c => {
+                        const div = document.createElement('div');
+                        div.className = 'card border-0 shadow-sm bg-white p-3 rounded';
+                        div.innerHTML = `
+                            <div class="d-flex justify-content-between mb-1">
+                                <strong class="text-primary"><i class="bi bi-person-circle me-1"></i> ${c.usuario_nombre}</strong>
+                                <small class="text-muted">${new Date(c.fecha).toLocaleString('es-ES')}</small>
+                            </div>
+                            <p class="mb-0 text-secondary small">${c.texto}</p>
+                        `;
+                        contenedorComentarios.appendChild(div);
+                    });
+                }
+
+            } catch (error) {
+                console.error(error);
+                document.getElementById('cargando').innerHTML = `<div class="alert alert-danger">Error al conectar con el servidor.</div>`;
+            }
+        }
+
+        // 2. CONTROLAR QUÉ VE EL USUARIO SEGÚN SI ESTÁ LOGUEADO O NO
+        function configurarFormularioInteraccion() {
+            if (!usuarioSesion) {
+                document.getElementById('seccion-agregar-comentario').classList.add('d-none');
+                document.getElementById('alerta-login-comentario').classList.remove('d-none');
+            }
+        }
+
+        // 3. EVENTO PARA PUBLICAR COMENTARIO
+        document.getElementById('form-comentario').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const texto = document.getElementById('texto-comentario').value;
+
+            try {
+                const respuesta = await fetch('http://localhost:5000/api/noticias/comentarios', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        texto,
+                        noticia_id: parseInt(noticiaId),
+                        usuario_id: usuarioSesion.id
+                    })
+                });
+
+                if (respuesta.ok) {
+                    document.getElementById('texto-comentario').value = ''; // Limpiar campo
+                    cargarDetalleNoticia(); // Recargar la sección completa
+                }
+            } catch (error) {
+                console.error('Error al comentar:', error);
+            }
+        });
+
+        // 4. FUNCIÓN PARA VOTAR (LIKE / DISLIKE)
+        async function votar(tipoVoto) {
+            if (!usuarioSesion) {
+                alert('Debes iniciar sesión para poder votar.');
+                return;
+            }
+
+            try {
+                const respuesta = await fetch('http://localhost:5000/api/noticias/reacciones', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        noticia_id: parseInt(noticiaId),
+                        usuario_id: usuarioSesion.id,
+                        tipo: tipoVoto
+                    })
+                });
+
+                if (respuesta.ok) {
+                    cargarDetalleNoticia(); // Recargar contadores y listas de nombres
+                }
+            } catch (error) {
+                console.error('Error al votar:', error);
+            }
+        }
+    </script>
+</body>
+</html>
