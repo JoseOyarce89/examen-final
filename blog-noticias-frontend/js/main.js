@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:5000/api/noticias';
+const API_URL = '/api/noticias'; // 👈 ¡Arreglado! Ruta relativa para que funcione en Render
 let categoriaActual = '';
 let ordenActual = 'DESC';
 
@@ -75,7 +75,7 @@ async function cargarNoticias() {
         contenedor.innerHTML = `
             <div class="col-12 text-center py-5">
                 <div class="alert alert-danger" role="alert">
-                    ❌ No se pudo conectar con el servidor. Asegúrate de tener corriendo tu backend Node.js en el puerto 5000.
+                    ❌ No se pudo conectar con el servidor.
                 </div>
             </div>`;
     }
@@ -87,7 +87,11 @@ function filtrarPorCategoria(idCategoria) {
     
     // Cambiar dinámicamente el título visual de la sección
     const titulos = { 1: 'Tecnología', 2: 'Deportes', 3: 'Espectáculos', 4: 'Internacional', 5: 'Política' };
-    document.getElementById('titulo-seccion').innerText = `Categoría: ${titulos[idCategoria]}`;
+    
+    const tituloSeccion = document.getElementById('titulo-seccion');
+    if (tituloSeccion) {
+        tituloSeccion.innerText = `Categoría: ${titulos[idCategoria]}`;
+    }
     
     cargarNoticias();
 }
@@ -103,7 +107,7 @@ function configurarNavbarUsuario() {
     const usuarioJson = localStorage.getItem('usuario');
     const authButtons = document.getElementById('auth-buttons');
     
-    if (usuarioJson) {
+    if (usuarioJson && authButtons) {
         const usuario = JSON.parse(usuarioJson);
         authButtons.innerHTML = `
             <span class="navbar-text text-white me-3">Hola, <strong>${usuario.nombre}</strong></span>

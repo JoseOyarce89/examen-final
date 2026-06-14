@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
+const path = require('path');
 
 // Importar rutas
 const authRoutes = require('./routes/authRoutes');
@@ -12,21 +13,16 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const path = require('path');
-
-// Esto le dice a Express que busque y sirva los archivos HTML, CSS y JS del frontend
+// Servir archivos estáticos del frontend de manera prioritaria
 app.use(express.static(path.join(__dirname, '../blog-noticias-frontend')));
 
 // Enlazar Rutas de la API
-app.use('/api/auth', authRoutes); // <-- Aquí conectamos el login y registro
-app.use('/api/noticias', noticiaRoutes); // <-- 2. Conectamos las rutas de noticias
+app.use('/api/auth', authRoutes); 
+app.use('/api/noticias', noticiaRoutes); 
 
-// Ruta de prueba inicial
-app.get('/', (req, res) => {
-    res.json({ mensaje: "¡Bienvenido a la API del Blog de Noticias!" });
-});
+// OJO: Quitamos la ruta de prueba app.get('/') para que cargue automáticamente el index.html
 
-// Configuración del puerto
+// Configuración del puerto (Render asignará uno automáticamente, si no usa el 5000)
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(`🚀 Servidor corriendo en el puerto ${PORT}`);
