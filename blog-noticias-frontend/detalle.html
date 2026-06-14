@@ -104,10 +104,10 @@
             configurarFormularioInteraccion();
         });
 
-        // 1. CARGAR DETALLE COMPLETO DESDE LA API
+        // 1. CARGAR DETALLE COMPLETO DESDE LA API (Ruta relativa corregida para producción)
         async function cargarDetalleNoticia() {
             try {
-                const respuesta = await fetch(`http://localhost:5000/api/noticias/${noticiaId}`);
+                const respuesta = await fetch(`/api/noticias/${noticiaId}`);
                 if (!respuesta.ok) throw new Error('No se pudo obtener la noticia.');
                 
                 const data = await respuesta.json();
@@ -131,11 +131,11 @@
                 document.getElementById('contador-likes').innerText = n.likes;
                 document.getElementById('contador-dislikes').innerText = n.dislikes;
 
-                // Llenar quiénes dieron like/dislike (Requerimiento cumplido)
+                // Llenar quiénes dieron like/dislike
                 document.getElementById('lista-likes').innerHTML = `<strong>Likes de:</strong> ${data.detalles_reacciones.usuarios_like.join(', ') || 'Nadie aún'}`;
                 document.getElementById('lista-dislikes').innerHTML = `<strong>Dislikes de:</strong> ${data.detalles_reacciones.usuarios_dislike.join(', ') || 'Nadie aún'}`;
 
-                // Llenar Comentarios (Sentencia repetitiva para renderizar comentarios)
+                // Llenar Comentarios
                 const contenedorComentarios = document.getElementById('contenedor-comentarios');
                 contenedorComentarios.innerHTML = '';
                 
@@ -170,13 +170,13 @@
             }
         }
 
-        // 3. EVENTO PARA PUBLICAR COMENTARIO
+        // 3. EVENTO PARA PUBLICAR COMENTARIO (Ruta relativa corregida para producción)
         document.getElementById('form-comentario').addEventListener('submit', async (e) => {
             e.preventDefault();
             const texto = document.getElementById('texto-comentario').value;
 
             try {
-                const respuesta = await fetch('http://localhost:5000/api/noticias/comentarios', {
+                const respuesta = await fetch('/api/noticias/comentarios', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -187,15 +187,15 @@
                 });
 
                 if (respuesta.ok) {
-                    document.getElementById('texto-comentario').value = ''; // Limpiar campo
-                    cargarDetalleNoticia(); // Recargar la sección completa
+                    document.getElementById('texto-comentario').value = ''; 
+                    cargarDetalleNoticia(); 
                 }
             } catch (error) {
                 console.error('Error al comentar:', error);
             }
         });
 
-        // 4. FUNCIÓN PARA VOTAR (LIKE / DISLIKE)
+        // 4. FUNCIÓN PARA VOTAR (Ruta relativa corregida para producción)
         async function votar(tipoVoto) {
             if (!usuarioSesion) {
                 alert('Debes iniciar sesión para poder votar.');
@@ -203,7 +203,7 @@
             }
 
             try {
-                const respuesta = await fetch('http://localhost:5000/api/noticias/reacciones', {
+                const respuesta = await fetch('/api/noticias/reacciones', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -214,7 +214,7 @@
                 });
 
                 if (respuesta.ok) {
-                    cargarDetalleNoticia(); // Recargar contadores y listas de nombres
+                    cargarDetalleNoticia(); 
                 }
             } catch (error) {
                 console.error('Error al votar:', error);
