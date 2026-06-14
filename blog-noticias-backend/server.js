@@ -12,6 +12,11 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+const path = require('path');
+
+// Esto le dice a Express que busque y sirva los archivos HTML, CSS y JS del frontend
+app.use(express.static(path.join(__dirname, '../blog-noticias-frontend')));
+
 // Enlazar Rutas de la API
 app.use('/api/auth', authRoutes); // <-- Aquí conectamos el login y registro
 app.use('/api/noticias', noticiaRoutes); // <-- 2. Conectamos las rutas de noticias
